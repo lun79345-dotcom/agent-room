@@ -1,0 +1,11 @@
+.data/
+workspace/
+node_modules/
+.DS_Store
+release/
+preview.jpg
+beta-preview.jpg
+beta-onboarding.jpg
+.env
+.env.*
+*.log

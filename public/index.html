@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Agent Room · 员工协作群</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" type="module"></script>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <a class="brand" href="/" aria-label="Agent Room 首页"><span class="brand-icon">a<span>·</span></span><span>agent room<small>你的 AI 工作小组</small></span></a>
+      <div class="workspace-label">WORKSPACE <span>本机</span></div>
+      <button class="room-link active"><span class="room-symbol">#</span><span>开发小组<small id="sidebar-count">你和 3 位员工</small></span><span class="room-dot"></span></button>
+      <div class="nav-label">小组成员 <button id="add-member" class="icon-button" aria-label="添加员工">＋</button></div>
+      <nav id="staff-nav" aria-label="员工列表"></nav>
+      <div class="sidebar-note"><span class="tiny-orbit">✳</span><p>一个员工，一个会话。<br>讨论在这里，工作在原应用。</p></div>
+      <div class="connection-box"><div class="connection-title">应用连接 <button id="refresh-connections" class="icon-button" aria-label="重新检查应用连接">↻</button></div><div id="connections"></div></div>
+      <div class="profile"><span class="avatar user">你</span><span>你<small>小组负责人</small></span><span class="local-label">LOCAL</span></div>
+    </aside>
+
+    <main class="main">
+      <header class="room-header"><div><div class="eyebrow">TEAM CONVERSATION</div><h1><span>#</span> 开发小组</h1><p id="room-subtitle">4 人 · 每位员工都有自己的工作会话</p></div><div class="header-actions"><span id="live-status" class="live-status"><i></i>本地连接中</span><button id="open-setup" class="button subtle">使用前检查</button><button id="sync-native" class="button subtle">↻ 同步进度</button><button id="toggle-team" class="button subtle mobile-only">成员</button></div></header>
+      <section class="team-strip" id="team-strip" aria-label="团队分工"></section>
+      <div class="setup-banner" id="setup-banner" hidden></div>
+      <div class="message-area" id="message-area">
+        <section id="welcome" class="welcome"><div class="welcome-mark">↗</div><div class="eyebrow">A SMALL TEAM. ONE SHARED ROOM.</div><h2>让员工各司其职，<br>让进度在这里汇合。</h2><p>你确定方向，Claude 主管分工跟进。<br>两位 Codex 员工在自己的会话里把工作完成。</p><div class="quick-actions"><button id="introduce" class="quick-card"><span>01</span><strong>先确认分工</strong><small>请每位员工介绍职责 <b>↗</b></small></button><button id="start-task" class="quick-card"><span>02</span><strong>交办一项工作</strong><small>主管拆解并分配任务 <b>↗</b></small></button><button id="get-report" class="quick-card"><span>03</span><strong>听听当前进度</strong><small>请主管汇总真实结果 <b>↗</b></small></button></div></section>
+        <div class="date-divider"><span>小组消息</span></div>
+        <div id="messages" class="messages" role="log" aria-live="polite" aria-relevant="additions"></div>
+      </div>
+      <footer class="composer-area"><div class="composer-toolbar"><div class="mode-tabs" aria-label="消息类型"><button id="mode-discuss" class="selected">群聊讨论</button><button id="mode-work">交办工作 <span>↗</span></button></div><label class="recipient-label">发给 <select id="recipients" aria-label="消息接收人"></select></label></div><form id="composer"><textarea id="message-input" rows="2" placeholder="和主管讨论需求，或 @ 一位员工跟进进度…" aria-label="群聊消息" maxlength="30000"></textarea><div class="composer-bottom"><span id="composer-hint">Enter 发送 · Shift + Enter 换行</span><button id="send" class="send-button" type="submit">发送 <span>↑</span></button></div></form><div class="composer-caption"><span>✳</span> 同一个员工始终使用同一个会话。发言会使用现有 Claude / Codex 登录和额度。</div></footer>
+    </main>
+
+    <aside class="team-panel" id="team-panel"><div class="panel-header"><div><span class="eyebrow">YOUR TEAM</span><h2>小组员工 <span id="member-count">3</span></h2></div><button id="panel-add" class="icon-button light" aria-label="新增一位员工">＋</button></div><div id="staff-cards"></div><div class="tasks-heading"><h2>工作进度 <span id="task-count">0</span></h2><span>主管分工后显示</span></div><div id="tasks"></div><div class="panel-footer">Mac 内测版 <span>v0.2</span><p>会话和群聊保存在这台电脑上。</p></div></aside>
+  </div>
+  <div id="toast" role="status"></div>
+  <dialog id="member-dialog"><form id="member-form"><div class="dialog-header"><div><div class="eyebrow">TEAM MEMBER</div><h2 id="dialog-title">添加员工</h2></div><button type="button" id="close-dialog" class="icon-button light" aria-label="关闭">×</button></div><input name="id" type="hidden"><label>员工姓名<input name="name" required maxlength="40" placeholder="例如 Codex 小李"></label><div class="form-row"><label>使用应用<select name="provider"><option value="codex">Codex</option><option value="claude">Claude</option></select></label><label>小组角色<select name="role"><option value="worker">员工</option><option value="manager">主管（Claude）</option></select></label></div><label>工作职责<textarea name="responsibility" required maxlength="3000" placeholder="这个员工负责什么工作？"></textarea></label><label>工作目录<input name="cwd" required placeholder="项目文件夹的完整路径"></label><details><summary>绑定已有会话</summary><p>留空会创建独立会话。一个会话只能绑定一位员工。</p><label>会话 ID<input name="sessionId" placeholder="现有会话的 UUID"></label></details><div id="member-error" class="form-error" role="alert"></div><div class="dialog-footer"><button type="button" id="remove-member" class="button danger">移出小组</button><button type="submit" class="button primary">保存员工</button></div></form></dialog>
+  <dialog id="task-dialog"><div class="dialog-header"><div><div class="eyebrow">TASK DETAIL</div><h2 id="task-title"></h2></div><button id="close-task" class="icon-button light" aria-label="关闭任务详情">×</button></div><div id="task-detail"></div></dialog>
+<dialog id="setup-dialog"><div class="dialog-header"><div><div class="eyebrow">GET READY</div><h2>使用前检查</h2></div><button id="close-setup" class="icon-button light" aria-label="关闭使用前检查">×</button></div><div class="setup-scroll"><p class="setup-intro">每位使用者在自己的 Mac 上登录。AI 员工沿用各自会话，共用你的对应账号和额度。</p><div id="setup-summary" role="status"></div><div id="setup-checks"></div><p class="setup-note">本检查只读取安装和登录状态，不调用模型。网络与可用额度以实际回复为准。</p><details class="program-settings"><summary>已经安装，但没有找到程序？</summary><p>填写程序文件的完整路径。留空会重新自动寻找；只保存在这台电脑上。</p><form id="program-form"><label>Claude Code 程序位置<input name="claudeBinary" placeholder="Claude Code 可执行文件的完整路径"></label><label>Codex 程序位置<input name="codexBinary" placeholder="Codex 可执行文件的完整路径"></label><button type="submit" class="button">保存并检查</button><div id="program-error" class="form-error" role="alert"></div></form></details></div><div class="dialog-footer"><button id="recheck-setup" class="button">重新检查</button><button id="finish-setup" class="button primary">进入群聊</button></div></dialog>
+</body>
+</html>
